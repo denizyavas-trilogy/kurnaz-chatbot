@@ -206,6 +206,78 @@ async def root():
             40% { content: '..'; }
             60%, 100% { content: '...'; }
         }
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+                height: 100vh;
+            }
+            .container {
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            .header {
+                padding: 15px;
+            }
+            .header h1 {
+                font-size: 22px;
+            }
+            .header p {
+                font-size: 12px;
+            }
+            .chat-area {
+                padding: 15px;
+            }
+            .message-content {
+                max-width: 85%;
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+            .input-area {
+                padding: 12px;
+                gap: 8px;
+            }
+            #messageInput {
+                padding: 10px 14px;
+                font-size: 16px;
+            }
+            #voiceButton {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+                padding: 10px;
+                flex-shrink: 0;
+            }
+            #sendButton {
+                padding: 10px 16px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+        }
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 20px;
+            }
+            .message-content {
+                max-width: 90%;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            #messageInput {
+                font-size: 16px;
+                padding: 8px 12px;
+            }
+            #sendButton {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            #voiceButton {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
