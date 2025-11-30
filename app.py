@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from openai import OpenAI
 import os
@@ -28,6 +29,10 @@ Kurallar:
 
 class Msg(BaseModel):
     message: str
+
+@app.get("/logo.png")
+async def get_logo():
+    return FileResponse("logo.png")
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
@@ -69,6 +74,18 @@ async def root():
             color: white;
             padding: 20px;
             text-align: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-logo {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 40px;
+            width: auto;
         }
         .header h1 {
             font-size: 28px;
@@ -220,6 +237,10 @@ async def root():
             .header {
                 padding: 15px;
             }
+            .header-logo {
+                left: 15px;
+                height: 32px;
+            }
             .header h1 {
                 font-size: 22px;
             }
@@ -256,6 +277,10 @@ async def root():
             }
         }
         @media (max-width: 480px) {
+            .header-logo {
+                left: 12px;
+                height: 28px;
+            }
             .header h1 {
                 font-size: 20px;
             }
@@ -283,8 +308,11 @@ async def root():
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚽ KURNAZ</h1>
-            <p>Spor Uzmanı Asistanınız</p>
+            <img src="/logo.png" alt="KURNAZ Logo" class="header-logo">
+            <div>
+                <h1>KURNAZ</h1>
+                <p>Spor Uzmanı Asistanınız</p>
+            </div>
         </div>
         <div class="chat-area" id="chatArea">
             <div class="message bot">
