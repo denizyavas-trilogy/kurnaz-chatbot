@@ -3,6 +3,9 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from openai import OpenAI
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 api_key = os.getenv("OPENAI_API_KEY")
 client = None
@@ -43,7 +46,7 @@ async def root():
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(180deg, #E30A17 0%, #E30A17 50%, #FFFFFF 50%, #FFFFFF 100%);
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -62,7 +65,7 @@ async def root():
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #E30A17;
             color: white;
             padding: 20px;
             text-align: center;
@@ -103,7 +106,7 @@ async def root():
             word-wrap: break-word;
         }
         .message.user .message-content {
-            background: #667eea;
+            background: #E30A17;
             color: white;
             border-bottom-right-radius: 4px;
         }
@@ -130,11 +133,38 @@ async def root():
             transition: border-color 0.3s;
         }
         #messageInput:focus {
-            border-color: #667eea;
+            border-color: #E30A17;
+        }
+        #voiceButton {
+            padding: 12px;
+            background: #E30A17;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #voiceButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(227, 10, 23, 0.4);
+        }
+        #voiceButton.recording {
+            background: #dc3545;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
         #sendButton {
             padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #E30A17;
             color: white;
             border: none;
             border-radius: 25px;
@@ -145,7 +175,7 @@ async def root():
         }
         #sendButton:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(227, 10, 23, 0.4);
         }
         #sendButton:active {
             transform: translateY(0);
@@ -192,7 +222,8 @@ async def root():
             </div>
         </div>
         <div class="input-area">
-            <input type="text" id="messageInput" placeholder="Mesajınızı yazın..." autocomplete="off">
+            <button id="voiceButton" onclick="toggleVoiceRecognition()" title="Sesli mesaj gönder">🎤</button>
+            <input type="text" id="messageInput" placeholder="Mesajınızı yazın veya mikrofon butonuna basın..." autocomplete="off">
             <button id="sendButton" onclick="sendMessage()">Gönder</button>
         </div>
         <div class="loading" id="loading"></div>
@@ -201,7 +232,65 @@ async def root():
         const chatArea = document.getElementById('chatArea');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
+        const voiceButton = document.getElementById('voiceButton');
         const loading = document.getElementById('loading');
+
+        let recognition = null;
+        let isRecording = false;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'tr-TR';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                messageInput.value = transcript;
+                sendMessage();
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                addMessage('bot', 'Ses tanıma hatası. Lütfen tekrar deneyin.');
+                stopRecording();
+            };
+
+            recognition.onend = () => {
+                stopRecording();
+            };
+        } else {
+            voiceButton.style.display = 'none';
+        }
+
+        function toggleVoiceRecognition() {
+            if (!recognition) {
+                addMessage('bot', 'Tarayıcınız ses tanımayı desteklemiyor.');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+                startRecording();
+            }
+        }
+
+        function startRecording() {
+            isRecording = true;
+            voiceButton.classList.add('recording');
+            voiceButton.textContent = '🔴';
+            messageInput.placeholder = 'Dinleniyor...';
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            voiceButton.classList.remove('recording');
+            voiceButton.textContent = '🎤';
+            messageInput.placeholder = 'Mesajınızı yazın veya mikrofon butonuna basın...';
+        }
 
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
